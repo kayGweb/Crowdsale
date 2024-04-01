@@ -84,4 +84,82 @@ describe("Crowdsale", () => {
 			//});
 		});
 	});
+
+	describe("Sending ETH", () => {
+		let amount = ether(10);
+		let transaction, result;
+
+		describe("Success", () => {
+			beforeEach(async () => {
+				transaction = await user1.sendTransaction({ to: crowdsale.address, value: amount });
+				result = await transaction.wait();
+			});
+
+			it("updates contracts ether balance", async () => {
+				expect(await ethers.provider.getBalance(crowdsale.address)).to.be.eq(amount);
+			});
+
+			it("updates user token balance", async () => {
+				expect(await token.balanceOf(user1.address)).to.eq(tokens(10));
+			});
+		});
+	});
+
+	describe("Updating Price", () => {
+		beforeEach(async () => {
+			transaction = await crowdsale.connect(deployer).setPrice(ether(2));
+			result = await transaction.wait();
+		});
+
+		describe("Success", () => {
+			it("updates the price", async () => {
+				expect(await crowdsale.price()).to.eq(ether(2));
+			});
+		});
+
+		describe("Failure", () => {
+			it("", async () => {
+				await expect(crowdsale.connect(user1).setPrice(2)).to.be.revertedWith("Caller is not the owner");
+			});
+		});
+	});
+
+	describe("Finalize the sale", () => {
+		let transaction, result;
+		let amount = tokens(10);
+		let value = ether(10);
+
+		describe("Success", () => {
+			beforeEach(async () => {
+				transaction = await crowdsale.connect(user1).buyTokens(amount, { value: value });
+				result = await transaction.wait();
+
+				transaction = await crowdsale.connect(deployer).finalize();
+				result = await transaction.wait();
+			});
+
+			it("transfers remaining tokens to owner", async () => {
+				expect(await token.balanceOf(deployer.address)).to.be.eq(tokens(999990));
+				expect(await token.balanceOf(crowdsale.address)).to.be.eq(tokens(0));
+			});
+
+			it("transfers ETH balance to owner", async () => {
+				expect(await ethers.provider.getBalance(crowdsale.address)).to.be.eq(0);
+			});
+
+			it("emits Finalize Event", async () => {
+				await expect(transaction).to.emit(crowdsale, "Finalize").withArgs(amount, value);
+			});
+		});
+
+		describe("Failure", () => {
+			it("prevents non-owner from finalizing", async () => {
+				await expect(crowdsale.connect(user1).finalize()).to.be.revertedWith("Caller is not the owner");
+			});
+
+			it("prevents non-owner from setting the price", async () => {
+				await expect(crowdsale.connect(user1).setPrice(1)).to.be.revertedWith("Caller is not the owner");
+			});
+		});
+	});
 });
