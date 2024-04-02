@@ -10,6 +10,7 @@ import Navigation from "./Navigation";
 import Info from "./Info";
 import Loading from "./Loading";
 import Progress from "./Progress";
+import Buy from "./buy";
 
 function App() {
 	const [provider, setProvider] = useState(null);
@@ -75,7 +76,8 @@ function App() {
 						<strong>Current Price:</strong>
 						{price} ETH
 					</p>
-					<Progress maxTokens={tokensSold} tokensSold={tokensSold} />
+					<Buy provider={provider} price={price} crowdsale={crowdsale} setIsLoading={setIsLoading} />
+					<Progress maxTokens={maxTokens} tokensSold={tokensSold} />
 				</>
 			)}
 
