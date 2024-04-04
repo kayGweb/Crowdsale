@@ -45,7 +45,6 @@ contract Crowdsale {
     }
 
     function finalize() public onlyOwner {
-        //require(msg.sender == owner);
         //send Token to crowdsale creator
         require(token.transfer(owner, token.balanceOf(address(this))));
 

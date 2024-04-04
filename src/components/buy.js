@@ -5,7 +5,6 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Spinner from "react-bootstrap/Spinner";
 import { ethers } from "ethers";
-import { set } from "lodash";
 
 const Buy = ({ provider, price, crowdsale, setIsLoading }) => {
 	const [amount, setAmount] = useState(0);
